@@ -72,7 +72,7 @@ This varies between AMD and Intel platforms. Refer to your motherboard's user ma
   sudo grub2-mkconfig -o /etc/grub2-efi.cfg
   ```
 
-- Reboot and verify
+- Reboot your system and verify that IOMMU flags are enabled.
 
   ```bash
   cat /proc/cmdline | grep iommu
