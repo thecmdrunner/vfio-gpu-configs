@@ -208,28 +208,29 @@ This varies between AMD and Intel platforms. Refer to your motherboard's user ma
 <details>
 <summary><b style="font-size: 1.3rem;">4. Install and setup Libvirt</b></summary>
 
-- ##### Fedora:
+- Installing Packages:
 
-```bash
-# Install packages from virtualization group
-sudo dnf install "@virtualization" -y
-```
+  - **Ubuntu:**
 
-- ##### Ubuntu:
+  ```bash
+  sudo apt install qemu virt-manager
+  ```
 
-```bash
-# Installing virt-manager should grab all dependencies?
-sudo apt install virt-manager -y
-```
+  - **Fedora:**
 
-### 5. Start Libvirt
+  ```bash
+  sudo dnf install "@virtualization" edk2-ovmf
+  ```
 
-- Reboot the system for sanity
-- Enable `libvirtd` service
+- Enable libvirt service
 
 ```bash
 sudo systemctl enable --now libvirtd
 ```
+
+- Reboot for sanity
+
+- DONE!
 
 </details>
 
