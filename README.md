@@ -48,11 +48,11 @@ This varies between AMD and Intel platforms. Refer to your motherboard's user ma
 <details>
 <summary><b style="font-size: 1.3rem;">2. Configure GRUB</b></summary>
 
-- Add these flags in the `GRUB_CMDLINE_LINUX` line in `/etc/default/grub`
+- Add IOMMU flags in the `GRUB_CMDLINE_LINUX` line in `/etc/default/grub`
 
-  - For AMD CPUs: `amd_iommu=on iommu=pt`
+  - **_For AMD CPUs:_** `amd_iommu=on iommu=pt`
 
-    For Intel CPUs: `intel_iommu=on iommu=pt`
+    **_For Intel CPUs:_** `intel_iommu=on iommu=pt`
 
   - `iommu=pt` leads to [less overhead](https://access.redhat.com/documentation/en-us/red_hat_virtualization/4.1/html/installation_guide/appe-configuring_a_hypervisor_host_for_pci_passthrough) and thus [better performance](https://www.reddit.com/r/Proxmox/comments/hhx77k/the_importance_of_iommupt_with_gpu_pass_through_i/).
 
