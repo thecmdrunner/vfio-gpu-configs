@@ -238,7 +238,75 @@ sudo systemctl enable --now libvirtd
 
 **This is the interesting sutff you've come for!**
 
+<details>
+<summary><b style="font-size: 1.3rem;">Fedora</b></summary>
+<br/>
+
+### 1. Setup the initramfs:
+
+Create a custom dracut module called `20vfio`, that will include the VFIO modules in the initramfs, along with a script that is responsible for loading and binding VFIO driver to the GPU.
+
+> **20** in `20vfio` is the priority order in which dracut loads up the module while generating the initramfs.
+
+- **Create the module directory:**
+
+```bash
+sudo mkdir -p /usr/lib/dracut/modules.d/20vfio
+```
+
+- **Create module setup at** `/usr/lib/dracut/modules.d/20vfio/module-setup.sh` **with the following contents:**
+
+```bash
+#!/usr/bin/bash
+check() {
+  return 0
+}
+depends() {
+  return 0
+}
+install() {
+  declare moddir=${moddir}
+  inst_hook pre-udev 00 "$moddir/vfio-pci-override.sh"
+}
+```
+
+- **Create the script at** `/sbin/vfio-pci-override.sh` **with the following contents:**
+
 [WIP]
+
+- **Link the script to the** `20vfio` **directory. (This may not be needed, but just so we don't mess up)**
+
+```bash
+sudo ln -s /sbin/vfio-pci-override.sh /usr/lib/dracut/modules.d/20vfio/vfio-pci-override.sh
+```
+
+- **Create a dracut config at** `/etc/dracut.conf.d/local.conf` **with the following contents:**
+
+```bash
+add_dracutmodules+=" vfio "
+force_drivers+=" vfio vfio-pci vfio_iommu_type1 "
+install_items="/usr/sbin/vfio-pci-override.sh /usr/bin/find /usr/bin/dirname"
+```
+
+- **Regenerate the initramfs:**
+
+```bash
+sudo dracut -fv
+```
+
+This should give a lot of verbose output, and if you did everything correctly, you should see a line somewhere that says:
+
+```bash
+dracut: *** Including module: vfio ***
+```
+
+This is a good sign, and we can move on. Re-check the previous steps if you don't see vfio in the output.
+
+- **Verify that the script is also included:** `sudo lsinitrd | grep vfio`
+
+- **Reboot and check:** `lspci`
+
+</details>
 
 ## Credits (and Helpful links!)
 
