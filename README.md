@@ -29,7 +29,7 @@ This is very useful because I still run into programs that are better suited (or
 
 </details>
 
-# 🚀 Getting Started with the Basics
+# 🚀 Initial Steps
 
 **Follow [this guide](https://gitlab.com/risingprismtv/single-gpu-passthrough/-/wikis/home) by RisingPrismTV, or the brief instructions mentioned below.** _(taken from the guide)_
 
@@ -37,7 +37,12 @@ This is very useful because I still run into programs that are better suited (or
 
 <details>
 <summary><b style="font-size: 1.3rem;">1. Enable virtualization in UEFI/BIOS</b></summary>
-This varies between AMD and Intel platforms. Refer to your motherboard's user manual.
+
+- On Intel platforms, it's called Intel **VT-D** or **VT-x**, or simply **Intel Virtualization Technology**
+
+- On AMD platforms, enable **SVM mode** and set IOMMU to "enabled" (**_not_** "Auto").
+
+> **_This varies between various motherboards. Refer to your motherboard's user manual._**
 
 **_For example:_**
 
@@ -239,16 +244,37 @@ sudo systemctl enable --now libvirtd
 **This is the interesting sutff you've come for!**
 
 <details>
-<summary><b style="font-size: 1.3rem;">Fedora</b></summary>
+<summary><img src='https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Fedora_icon_%282021%29.svg/512px-Fedora_icon_%282021%29.svg.png?20220308003156' width='15'></img><b style="font-size: 1.3rem;"> Fedora</b></summary>
 <br/>
 
-### 1. Setup the initramfs:
+To keep it short, we will create a dracut module that will include the VFIO module in the initramfs, along with a script that is responsible for loading and binding VFIO driver to the GPU.
 
-Create a custom dracut module called `20vfio`, that will include the VFIO modules in the initramfs, along with a script that is responsible for loading and binding VFIO driver to the GPU.
+### 1. Making the script
+
+- **Create `/sbin/vfio-pci-override.sh` with the following contents:**
+
+Here, modify the `DEVICES` line and enter the PCI addresses of each component your GPU(s), separated by a space.
+
+PCI addresses are just the slot addresses with a prefix like 0000 or 0001. You will find all PCI addresses for your system in `/sys/bus/pci/devices/`.
+
+```bash
+#!/bin/sh
+DEVICES="0000:0a:00.0 0000:0a:00.1"
+
+for DEVICE in $DEVICES; do
+        echo "vfio-pci" > /sys/bus/pci/devices/$DEVICE/driver_override
+done
+
+modprobe -i vfio-pci
+```
+
+> **_Note:_** _Xeon, Threadripper or multi-socket systems may very well have a PCIe device prefix of 0001 or 000a… so double check at `/sys/bus/pci/devices/` if you want to be absolutely sure._
+
+### 2. Setting up dracut:
+
+- **Create a dracut module directory called `20vfio`:**
 
 > **20** in `20vfio` is the priority order in which dracut loads up the module while generating the initramfs.
-
-- **Create the module directory:**
 
 ```bash
 sudo mkdir -p /usr/lib/dracut/modules.d/20vfio
@@ -270,17 +296,13 @@ install() {
 }
 ```
 
-- **Create the script at** `/sbin/vfio-pci-override.sh` **with the following contents:**
-
-[WIP]
-
-- **Link the script to the** `20vfio` **directory. (This may not be needed, but just so we don't mess up)**
+- **Link the script that we created to the module directory. _(This may not be needed, but do it anyway)_**
 
 ```bash
 sudo ln -s /sbin/vfio-pci-override.sh /usr/lib/dracut/modules.d/20vfio/vfio-pci-override.sh
 ```
 
-- **Create a dracut config at** `/etc/dracut.conf.d/local.conf` **with the following contents:**
+- **Create a dracut config at** `/etc/dracut.conf.d/vfio.conf` **with the following contents:**
 
 ```bash
 add_dracutmodules+=" vfio "
@@ -294,17 +316,49 @@ install_items="/usr/sbin/vfio-pci-override.sh /usr/bin/find /usr/bin/dirname"
 sudo dracut -fv
 ```
 
-This should give a lot of verbose output, and if you did everything correctly, you should see a line somewhere that says:
-
-```bash
-dracut: *** Including module: vfio ***
-```
+This should give a lot of verbose output, and if you did everything correctly, you should see a line somewhere that says: `dracut: *** Including module: vfio ***`.
 
 This is a good sign, and we can move on. Re-check the previous steps if you don't see vfio in the output.
 
+<details>
+<summary><i>My sample output</i></summary>
+
+```bash
+<SOME OUTPUT OMITTED>
+dracut: Executing: /usr/bin/dracut -fv --kver 6.0.10-300.fc37.x86_64
+dracut: *** Including module: bash ***
+dracut: *** Including module: systemd ***
+dracut: *** Including module: vfio ***
+dracut: *** Including module: network-manager ***
+dracut: *** Including module: kernel-modules ***
+dracut: *** Installing kernel module dependencies ***
+dracut: *** Resolving executable dependencies ***
+dracut: *** Creating image file '/boot/initramfs-6.0.10-300.fc37.x86_64.img' ***
+```
+
+</details>
+
 - **Verify that the script is also included:** `sudo lsinitrd | grep vfio`
 
-- **Reboot and check:** `lspci`
+<details>
+<summary><i>My sample output</i></summary>
+
+```bash
+vfio
+lrwxrwxrwx   1 root     root           37 Nov 16 23:30 usr/lib/dracut/hooks/pre-udev/00-vfio-pci-override.sh -> ../../../../sbin/vfio-pci-override.sh
+drwxr-xr-x   3 root     root            0 Nov 16 23:30 usr/lib/modules/6.0.10-300.fc37.x86_64/kernel/drivers/vfio
+drwxr-xr-x   2 root     root            0 Nov 16 23:30 usr/lib/modules/6.0.10-300.fc37.x86_64/kernel/drivers/vfio/pci
+-rw-r--r--   1 root     root        32156 Nov 16 23:30 usr/lib/modules/6.0.10-300.fc37.x86_64/kernel/drivers/vfio/pci/vfio-pci-core.ko.xz
+-rw-r--r--   1 root     root         8608 Nov 16 23:30 usr/lib/modules/6.0.10-300.fc37.x86_64/kernel/drivers/vfio/pci/vfio-pci.ko.xz
+-rw-r--r--   1 root     root        19896 Nov 16 23:30 usr/lib/modules/6.0.10-300.fc37.x86_64/kernel/drivers/vfio/vfio_iommu_type1.ko.xz
+-rw-r--r--   1 root     root        14900 Nov 16 23:30 usr/lib/modules/6.0.10-300.fc37.x86_64/kernel/drivers/vfio/vfio.ko.xz
+-rw-r--r--   1 root     root         3568 Nov 16 23:30 usr/lib/modules/6.0.10-300.fc37.x86_64/kernel/drivers/vfio/vfio_virqfd.ko.xz
+-rwxr--r--   1 root     root          172 Nov 16 23:30 usr/sbin/vfio-pci-override.sh
+```
+
+</details>
+
+- **Reboot and verify that vfio driver is loaded:** `lspci -nnk | grep -iP "nvidia|radeon|vfio-pci"`
 
 </details>
 
