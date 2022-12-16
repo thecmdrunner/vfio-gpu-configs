@@ -1,4 +1,4 @@
-# VFIO Dual-GPU Configuration
+# VFIO GPU Configuration
 
 **VFIO setup configuration for my system that does Linux + Windows 11 with GPU acceleration simulatenously.**
 
@@ -18,18 +18,18 @@ This is very useful because I still run into programs that are better suited (or
 | Mac OS ([with optimizations](https://github.com/sickcodes/osx-optimizer)) | Mac OS works [**with a supported GPU**](https://dortania.github.io/GPU-Buyers-Guide/). _(my GT 710 plays 4K videos just fine)_                                                                        |
 
 <details>
-<summary><b>Here's my setup that I've used to test everything</b></summary>
+<summary><b>Here's my setup</b></summary>
 
 | **Category**    | **Hardware**                          | **Notes**                                                                                 |
 | --------------- | ------------------------------------- | ----------------------------------------------------------------------------------------- |
 | **CPU**         | AMD Ryzen 9 3900X                     |                                                                                           |
-| **Motherboard** | Gigabyte Aorus X570 Elite WiFi        | _I bought this board, since Gigabyte usually has good IOMMU isolation_                    |
+| **Motherboard** | Gigabyte Aorus X570 Elite WiFi        | _I bought this board, since Gigabyte usually has good IOMMU isolation_.                   |
 | **GPUs**        | 2 x NVIDIA GT 710 - (Asus & Gigabyte) | _(yes they are from the pandemic times)_                                                  |
 | **Host OS**     | Fedora 37 w/ KDE Plasma               | This setup is also tested on Ubuntu 22.10 and instructions are provided along with Fedora |
 
 </details>
 
-# 🚀 Initial Steps
+# ⚡ Initial Steps
 
 **Follow [this guide](https://gitlab.com/risingprismtv/single-gpu-passthrough/-/wikis/home) by RisingPrismTV, or the brief instructions mentioned below.** _(taken from the guide)_
 
@@ -88,7 +88,7 @@ This is very useful because I still run into programs that are better suited (or
 </details>
 
 <details>
-<summary><b style="font-size: 1.3rem;">3. Check your IOMMU grouping</b></summary>
+<summary><b style="font-size: 1.3rem;">3. Verify IOMMU groups</b></summary>
 
 - You can only passthrough all the devices in an IOMMU group.
 
@@ -110,7 +110,7 @@ This is very useful because I still run into programs that are better suited (or
   ```
 
     <details>
-    <summary><i>My sample output</i></summary>
+    <summary><i style="color: yellow">My sample output</i></summary>
 
   <b>Notice that I have two GT 710 GPUs in IOMMU Group 22 and 25 respectively, each having a VGA and Audio component with no other device in the group.</b>
 
@@ -211,14 +211,14 @@ This is very useful because I still run into programs that are better suited (or
 </details>
 
 <details>
-<summary><b style="font-size: 1.3rem;">4. Install and setup Libvirt</b></summary>
+<summary><b style="font-size: 1.3rem;">4. Configure Libvirt</b></summary>
 
 - Installing Packages:
 
   - **Ubuntu:**
 
   ```bash
-  sudo apt install qemu virt-manager
+  sudo apt install qemu virt-manager ovmf
   ```
 
   - **Fedora:**
@@ -233,29 +233,25 @@ This is very useful because I still run into programs that are better suited (or
 sudo systemctl enable --now libvirtd
 ```
 
-- Reboot for sanity
-
-- DONE!
+- Reboot for sanity, and then DONE!
 
 </details>
 
-# GPU Passthrough
+# 🚀 GPU Passthrough
 
 **This is the interesting sutff you've come for!**
 
-<details>
-<summary><img src='https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Fedora_icon_%282021%29.svg/512px-Fedora_icon_%282021%29.svg.png?20220308003156' width='15'></img><b style="font-size: 1.3rem;"> Fedora</b></summary>
+<details open>
+<summary><img src='https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Fedora_icon_%282021%29.svg/512px-Fedora_icon_%282021%29.svg.png?20220308003156' width='22'></img><b style="font-size: 1.7rem"> Fedora</b></summary>
 <br/>
 
-To keep it short, we will create a dracut module that will include the VFIO module in the initramfs, along with a script that is responsible for loading and binding VFIO driver to the GPU.
+To keep it short, we will create a dracut module that will include the VFIO drivers, along with a script, in the initramfs.
 
-### 1. Making the script
+The script will be responsible for loading and binding VFIO driver to the GPU.
 
-- **Create `/sbin/vfio-pci-override.sh` with the following contents:**
+### 1. Creating the script:
 
-Here, modify the `DEVICES` line and enter the PCI addresses of each component your GPU(s), separated by a space.
-
-PCI addresses are just the slot addresses with a prefix like 0000 or 0001. You will find all PCI addresses for your system in `/sys/bus/pci/devices/`.
+- Create a script in `/sbin/vfio-pci-override.sh` with the following contents:
 
 ```bash
 #!/bin/sh
@@ -268,19 +264,25 @@ done
 modprobe -i vfio-pci
 ```
 
-> **_Note:_** _Xeon, Threadripper or multi-socket systems may very well have a PCIe device prefix of 0001 or 000a… so double check at `/sys/bus/pci/devices/` if you want to be absolutely sure._
+- Here, modify the **`DEVICES`** line and enter the PCIe addresses of each component your GPU(s), separated by a space.
 
-### 2. Setting up dracut:
+- You can find the addresses of your device in `/sys/bus/pci/devices/`
+
+- Don't forget to set proper permissions: `sudo chmod 744 /sbin/vfio-pci-override.sh`
+
+> **_Note:_** PCIe addresses are just the slot addresses with a prefix like `0000` or `0001`. Some Xeon/Threadripper or multi-socket systems may have a device prefix of `0001` or `000a`, so double check at `/sys/bus/pci/devices/`.
+
+### 2. Configuring dracut:
 
 - **Create a dracut module directory called `20vfio`:**
-
-> **20** in `20vfio` is the priority order in which dracut loads up the module while generating the initramfs.
 
 ```bash
 sudo mkdir -p /usr/lib/dracut/modules.d/20vfio
 ```
 
-- **Create module setup at** `/usr/lib/dracut/modules.d/20vfio/module-setup.sh` **with the following contents:**
+> **20** in `20vfio` is the priority order in which dracut loads up the module while generating the initramfs.
+
+- **Create module setup at **`/usr/lib/dracut/modules.d/20vfio/module-setup.sh`** with the following contents:**
 
 ```bash
 #!/usr/bin/bash
@@ -296,7 +298,7 @@ install() {
 }
 ```
 
-- **Link the script that we created to the module directory. _(This may not be needed, but do it anyway)_**
+- **Create a symlink to the script in the module directory:**
 
 ```bash
 sudo ln -s /sbin/vfio-pci-override.sh /usr/lib/dracut/modules.d/20vfio/vfio-pci-override.sh
@@ -310,21 +312,22 @@ force_drivers+=" vfio vfio-pci vfio_iommu_type1 "
 install_items="/usr/sbin/vfio-pci-override.sh /usr/bin/find /usr/bin/dirname"
 ```
 
-- **Regenerate the initramfs:**
+- **Regenerate the initramfs:** _(for the kernel currently running)_
 
 ```bash
-sudo dracut -fv
+sudo dracut -fv --kver `uname -r`
 ```
 
-This should give a lot of verbose output, and if you did everything correctly, you should see a line somewhere that says: `dracut: *** Including module: vfio ***`.
+This should print a lot of verbose output, and if you did everything correctly, you should see a line somewhere that says: **`Including module: vfio`**.
 
-This is a good sign, and we can move on. Re-check the previous steps if you don't see vfio in the output.
+This is a good sign, and we can move on. Otherwise, re-check the previous steps.
 
 <details>
-<summary><i>My sample output</i></summary>
+<summary><i style="color: yellow">My sample output</i></summary>
 
 ```bash
-<SOME OUTPUT OMITTED>
+fedora:~$ sudo dracut -fv --kver `uname -r`
+
 dracut: Executing: /usr/bin/dracut -fv --kver 6.0.10-300.fc37.x86_64
 dracut: *** Including module: bash ***
 dracut: *** Including module: systemd ***
@@ -341,7 +344,7 @@ dracut: *** Creating image file '/boot/initramfs-6.0.10-300.fc37.x86_64.img' ***
 - **Verify that the script is also included:** `sudo lsinitrd | grep vfio`
 
 <details>
-<summary><i>My sample output</i></summary>
+<summary><i style="color: yellow">My sample output</i></summary>
 
 ```bash
 vfio
@@ -359,6 +362,30 @@ drwxr-xr-x   2 root     root            0 Nov 16 23:30 usr/lib/modules/6.0.10-30
 </details>
 
 - **Reboot and verify that vfio driver is loaded:** `lspci -nnk | grep -iP "nvidia|radeon|vfio-pci"`
+
+### 3. Assigning the GPU to the VM:
+
+Now that our cake is _(hopefully)_ ready, we can eat it!
+
+#### _Make sure your VM meets these requirements:_
+
+| Name                     | Details                                                                  |
+| ------------------------ | ------------------------------------------------------------------------ |
+| Firmware (UEFI required) | `UEFI`, or any OVMF variant: `OVMF_CODE.fd`,`OVMF_CODE.secboot.fd`, etc. |
+| vCPUs                    | 2 Cores, 2 Threads _(minimum)_                                           |
+| Memory                   | 4096 MB _(minimum)_                                                      |
+
+#### Passthrough the GPU:
+
+- Open virt manager and go to the **_Details_** section of your VM.
+
+![VM Details](./assets/vm-details.png)
+
+- Select **_Add Hardware_** and add every component of your GPU _(or every item in the IOMMU group, if isolation isn't perfect)_.
+
+https://user-images.githubusercontent.com/38887390/208069797-9f7afba7-f324-4ee9-9946-e702443f1ffd.mp4
+
+- DONE!
 
 </details>
 
