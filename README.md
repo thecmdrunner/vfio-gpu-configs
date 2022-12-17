@@ -1,26 +1,45 @@
-# VFIO GPU Configuration
+<!-- <h1 style="margin-left: 0"><img src='https://cdn-icons-png.flaticon.com/512/2656/2656271.png' width='45' style="transform: rotate(-63deg); position: relative; top: 0.6ch;"> VFIO GPU Configuration</h1> -->
 
-**VFIO setup configuration for my system that does Linux + Windows 11 with GPU acceleration simulatenously.**
+<h1 style="margin-left: 0"><img src='https://cdn-icons-png.flaticon.com/512/2291/2291961.png' width='55' style="transform: rotate(-90deg); position: relative; top: 0.9ch; margin-right: 1ch">VFIO GPU-Passthrough</h1>
 
-This is very useful because I still run into programs that are better suited (or only available) on Windows, like Teamviewer, Office 365, Powershell, etc.
+<!-- <h1 style="margin-left: 0"><img src='https://cdn-icons-png.flaticon.com/512/8900/8900415.png' width='55' style="transform: rotate(-0deg); position: relative; top: 0.9ch; margin-right: 1ch">VFIO GPU Passthrough</h1> -->
 
-## Operating Systems support
+**VFIO configuration for a system with 1 or more GPUs, that runs Linux + Windows with GPU acceleration simulatenously.**
 
-![Windows](https://img.shields.io/badge/Windows-blue?style=for-the-badge&logo=Windows-11&logoColor=white&color=0078D4)
-![Linux](https://img.shields.io/badge/Linux-black?style=for-the-badge&logo=Linux&logoColor=white&color=2d2d2d)
-![BSD](https://img.shields.io/badge/BSD-black?style=for-the-badge&logo=FreeBSD&logoColor=white&color=AB2B28)
-![Mac](https://img.shields.io/badge/macOS-black?style=for-the-badge&logo=Apple&logoColor=black&color=white)
+**_This is useful for running:_**
 
-| **Guest OS**                                                              | **Notes**                                                                                                                                                                                             |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Windows 10/11                                                             | Windows 11 may require [`swtpm`](https://github.com/stefanberger/swtpm) and OVMF's `secboot.fd` UEFI variant [unless bypassed](https://www.tomshardware.com/how-to/bypass-windows-11-tpm-requirement) |
-| Linux Distros, BSDs                                                       | First class QEMU/KVM support for Linux distros. BSDs also work OOTB in my brief testing.                                                                                                              |
-| Mac OS ([with optimizations](https://github.com/sickcodes/osx-optimizer)) | Mac OS works [**with a supported GPU**](https://dortania.github.io/GPU-Buyers-Guide/). _(my GT 710 plays 4K videos just fine)_                                                                        |
+- **Programs better suited** _(or only available)_ **on Windows**, such as Teamviewer, Office 365, Powershell, Anticheat games, etc.
+- **Xcode** and **Final Cut Pro** on Mac OS.
+- **Sandbox environments** for banking, programming, testing and building software, etc.
+
+### Host Requirements 🖥️
+
+|                 | _Details_                                             |
+| --------------- | ----------------------------------------------------- |
+| **CPU**         | Atleast 4 cores                                       |
+| **Motherboard** | Decent IOMMU group separation, perhaps ACS            |
+| **GPUs**        | Atleast 1 dedicated GPU                               |
+| **Host OS**     | Any Linux Distro _(**Ubuntu** and **Fedora** tested)_ |
+
+### Guest OS support 🧪
+
+![Windows](https://img.shields.io/badge/Windows-blue?style=flat&logo=Windows-11&logoColor=white&color=0078D4)
+![Linux](https://img.shields.io/badge/Linux-black?style=flat&logo=Linux&logoColor=white&color=2d2d2d)
+![BSD](https://img.shields.io/badge/BSD-black?style=flat&logo=FreeBSD&logoColor=white&color=AB2B28)
+![Mac](https://img.shields.io/badge/macOS-black?style=flat&logo=Apple&logoColor=black&color=white)
+
+| _Guest OS_              | _Notes_                                                                                                                                                                                               | _Support_                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Windows 10/11**       | Windows 11 may require [`swtpm`](https://github.com/stefanberger/swtpm) and OVMF's `secboot.fd` UEFI variant [unless bypassed](https://www.tomshardware.com/how-to/bypass-windows-11-tpm-requirement) | ![Great](https://img.shields.io/badge/Great-brightgreen?style=for-the-badge)    |
+| **Linux Distros, BSDs** | **Linux and BSD distros** work almost flawlessly in my brief testing.                                                                                                                                 | ![Great](https://img.shields.io/badge/Great-brightgreen?style=for-the-badge)    |
+| **Mac OS**              | Mac OS works [with a supported GPU](https://dortania.github.io/GPU-Buyers-Guide/). Make sure to [apply optimizations](https://github.com/sickcodes/osx-optimizer).                                    | ![Imperfect](https://img.shields.io/badge/Limited-critical?style=for-the-badge) |
 
 <details>
 <summary><b>Here's my setup</b></summary>
 
-| **Category**    | **Hardware**                          | **Notes**                                                                                 |
+<br/>
+
+| Category        | Hardware                              | Notes                                                                                     |
 | --------------- | ------------------------------------- | ----------------------------------------------------------------------------------------- |
 | **CPU**         | AMD Ryzen 9 3900X                     |                                                                                           |
 | **Motherboard** | Gigabyte Aorus X570 Elite WiFi        | _I bought this board, since Gigabyte usually has good IOMMU isolation_.                   |
@@ -29,9 +48,11 @@ This is very useful because I still run into programs that are better suited (or
 
 </details>
 
-# ⚡ Initial Steps
+## ⚡ Initial Steps
 
-**Follow [this guide](https://gitlab.com/risingprismtv/single-gpu-passthrough/-/wikis/home) by RisingPrismTV, or the brief instructions mentioned below.** _(taken from the guide)_
+**Follow the [guide by RisingPrismTV](https://gitlab.com/risingprismtv/single-gpu-passthrough/-/wikis/home), or [this video tutorial](https://www.youtube.com/watch?v=_JTEsQufSx4) based on it.**
+
+Brief instructions are mentioned below. _(taken from the guide)_
 
 <!-- These link to already excellent guides made by others to avoid repetitions and potentially contradicting instructions from my side. -->
 
@@ -110,7 +131,7 @@ This is very useful because I still run into programs that are better suited (or
   ```
 
     <details>
-    <summary><i style="color: yellow">My sample output</i></summary>
+    <summary><b><i>My sample output</i></b></summary>
 
   <b>Notice that I have two GT 710 GPUs in IOMMU Group 22 and 25 respectively, each having a VGA and Audio component with no other device in the group.</b>
 
@@ -237,12 +258,14 @@ sudo systemctl enable --now libvirtd
 
 </details>
 
-# 🚀 GPU Passthrough
+<!-- <h2 style="margin-left: 0"><img src='https://cdn-icons-png.flaticon.com/512/5708/5708095.png' width='35' style="transform: otate(-63deg); position: relative; top: 0.9ch; margin-right: 1ch">Single-GPU Setup</h2> -->
 
-**This is the interesting sutff you've come for!**
+<h2 style="margin-left: 0"><img src='https://cdn-icons-png.flaticon.com/512/2656/2656271.png' width='35' style="transform: otate(-63deg); position: relative; top: 0.5ch; margin-right: 1ch">Dual-GPU Setup</h2>
 
-<details open>
-<summary><img src='https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Fedora_icon_%282021%29.svg/512px-Fedora_icon_%282021%29.svg.png?20220308003156' width='22'></img><b style="font-size: 1.7rem"> Fedora</b></summary>
+**This is for when you have two or more graphics cards, or are willing to use the integrated graphics for your host.**
+
+<details>
+<summary><b style="font-size: 1.5rem"><img src='https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Fedora_icon_%282021%29.svg/512px-Fedora_icon_%282021%29.svg.png?20220308003156' width='21'/> Fedora</b></summary>
 <br/>
 
 To keep it short, we will create a dracut module that will include the VFIO drivers, along with a script, in the initramfs.
@@ -264,11 +287,13 @@ done
 modprobe -i vfio-pci
 ```
 
-- Here, modify the **`DEVICES`** line and enter the PCIe addresses of each component your GPU(s), separated by a space.
+- Here, modify the **`DEVICES`** line and enter the PCIe addresses of each component of your GPU(s), separated by a space.
 
 - You can find the addresses of your device in `/sys/bus/pci/devices/`
 
-- Don't forget to set proper permissions: `sudo chmod 744 /sbin/vfio-pci-override.sh`
+> You can passthrough any PCIe device such as: SATA or NVME controllers, WiFi cards, and anything that has a properly isolated IOMMU group.
+
+- Don't forget to set proper permissions for the script: `sudo chmod 744 /sbin/vfio-pci-override.sh`
 
 > **_Note:_** PCIe addresses are just the slot addresses with a prefix like `0000` or `0001`. Some Xeon/Threadripper or multi-socket systems may have a device prefix of `0001` or `000a`, so double check at `/sys/bus/pci/devices/`.
 
@@ -323,7 +348,7 @@ This should print a lot of verbose output, and if you did everything correctly, 
 This is a good sign, and we can move on. Otherwise, re-check the previous steps.
 
 <details>
-<summary><i style="color: yellow">My sample output</i></summary>
+<summary><b><i>My sample output</i></b></summary>
 
 ```bash
 fedora:~$ sudo dracut -fv --kver `uname -r`
@@ -344,7 +369,7 @@ dracut: *** Creating image file '/boot/initramfs-6.0.10-300.fc37.x86_64.img' ***
 - **Verify that the script is also included:** `sudo lsinitrd | grep vfio`
 
 <details>
-<summary><i style="color: yellow">My sample output</i></summary>
+<summary><b><i>My sample output</i></b></summary>
 
 ```bash
 vfio
@@ -363,35 +388,82 @@ drwxr-xr-x   2 root     root            0 Nov 16 23:30 usr/lib/modules/6.0.10-30
 
 - **Reboot and verify that vfio driver is loaded:** `lspci -nnk | grep -iP "nvidia|radeon|vfio-pci"`
 
-### 3. Assigning the GPU to the VM:
+</details>
 
-Now that our cake is _(hopefully)_ ready, we can eat it!
+<!-- <details>
+<summary><b style="font-size: 1.5rem"><img src='https://assets.ubuntu.com/v1/29985a98-ubuntu-logo32.png' style="margin-top: 1ch" width='23'/> Ubuntu</b></summary>
+<br/>
+
+</details> -->
+
+## 🚀 Running the VM with GPU
+
+This assumes you already have a **_functional Virtual Machine_** running Windows, Linux, or MacOS. If not, then follow these guides for: [**Windows**](https://www.youtube.com/watch?v=8Xnmfqqyq4c) , [**MacOS Catalina**](https://www.youtube.com/watch?v=FbOc1cqIQcI) , [**MacOS Big Sur and above**](https://youtu.be/_JTEsQufSx4).
+
+[**_Remove virtual display (Spice/VNC) and sound adpaters_**](<https://gitlab.com/risingprismtv/single-gpu-passthrough/-/wikis/8)-Attaching-the-GPU-to-your-VM>) after passing the graphics card, if you haven't already.
+
+**_Now that our cake is (hopefully) ready, we can finally eat it!_**
 
 #### _Make sure your VM meets these requirements:_
 
-| Name                     | Details                                                                  |
-| ------------------------ | ------------------------------------------------------------------------ |
-| Firmware (UEFI required) | `UEFI`, or any OVMF variant: `OVMF_CODE.fd`,`OVMF_CODE.secboot.fd`, etc. |
-| vCPUs                    | 2 Cores, 2 Threads _(minimum)_                                           |
-| Memory                   | 4096 MB _(minimum)_                                                      |
+| Name                     | Details                                                                                               |
+| ------------------------ | ----------------------------------------------------------------------------------------------------- |
+| Firmware (UEFI required) | Use `OVMF_CODE.secboot.fd` for Windows 11. UEFI, or variants of OVMF should work fine for other OSes. |
+| vCPUs                    | 2 Cores, 2 Threads _(minimum)_                                                                        |
+| Memory                   | 4096 MB _(minimum)_                                                                                   |
 
-#### Passthrough the GPU:
+### Passthrough the GPU:
 
 - Open virt manager and go to the **_Details_** section of your VM.
 
-![VM Details](./assets/vm-details.png)
+| _Details about my VM_                  |
+| -------------------------------------- |
+| ![VM Details](./assets/vm-details.png) |
 
 - Select **_Add Hardware_** and add every component of your GPU _(or every item in the IOMMU group, if isolation isn't perfect)_.
 
-https://user-images.githubusercontent.com/38887390/208069797-9f7afba7-f324-4ee9-9946-e702443f1ffd.mp4
+> Having an extra USB Keyboard and Mouse to passthrough will make things simpler.
 
-- DONE!
+| _Adding every component of my GPU_                                                                                |
+| ----------------------------------------------------------------------------------------------------------------- |
+| ![add-gpu](https://user-images.githubusercontent.com/38887390/208242017-9a622e58-8a69-43c1-9f60-b44b0b023736.gif) |
 
-</details>
+- And finally, start the VM! If everything went right, you should see output on your second GPU. Now install the driver and make sure everything is stable.
 
-## Credits (and Helpful links!)
+### TODO:
 
-[WIP]
+- Ubuntu instructions, meanwhile follow [Pavol Elsig's tutorial](https://www.youtube.com/watch?v=ID3dlVHDl0c)
 
-- [Complete Single GPU Passthrough](https://github.com/QaidVoid/Complete-Single-GPU-Passthrough) by QaidVoid
-  - [Troubleshooting guide](https://docs.google.com/document/d/17Wh9_5HPqAx8HHk-p2bGlR0E-65TplkG18jvM98I7V8/) (from the same repository)
+- Single GPU Setup (both Fedora and Ubuntu)
+
+- Mention optimizations, Cassowary, hugepages, cpu pinning, Looking Glass, Virt 9p Drives etc.
+
+## Credits (and helpful links)
+
+This setup was made possible by using bits and pieces from these amazing guides:
+
+- [**Fedora Ultimate VFIO Guide**](https://forum.level1techs.com/t/fedora-33-ultimiate-vfio-guide-for-2020-2021-wip/163814) by _Level1Techs_
+
+- [**Fedora Single GPU Passthrough Tutorial**](https://www.youtube.com/watch?v=eTWf5D092VY) by [_BlandManStudios_](https://www.youtube.com/c/BlandManStudios)
+
+- [**Single GPU Passthrough Wiki**](https://gitlab.com/risingprismtv/single-gpu-passthrough/-/wikis/home) by _RisingPrismTV_
+
+- [**VFIO Hook helper**](https://passthroughpo.st/simple-per-vm-libvirt-hooks-with-the-vfio-tools-hook-helper/) by _Passthroughpost_
+
+### You may find helpful:
+
+- [**Complete Single GPU Passthrough**](https://github.com/QaidVoid/Complete-Single-GPU-Passthrough) by **QaidVoid**
+
+- SomeOrdinaryGamers - [**Windows Single GPU passthrough**](https://www.youtube.com/watch?v=BUSrdUoedTo)
+
+#### Icons provided by Flaticon:
+
+[Dual GPU icon](https://cdn-icons-png.flaticon.com/512/2656/2656271.png): <a href="https://www.flaticon.com/free-icons/gpu" title="gpu icons">Gpu icons created by vectorsmarket15 - Flaticon</a>
+
+<!-- [Single Red GPU icon](https://cdn-icons-png.flaticon.com/512/5708/5708095.png): <a href="https://www.flaticon.com/free-icons/gpu" title="gpu icons">Gpu icons created by smashingstocks - Flaticon</a> -->
+
+<!-- [Three fan gray GPU](https://cdn-icons-png.flaticon.com/512/2359/2359863.png): <a href="https://www.flaticon.com/free-icons/gpu" title="gpu icons">Gpu icons created by Ken111 - Flaticon</a> -->
+
+[Three fan black GPU](https://cdn-icons-png.flaticon.com/512/2291/2291961.png): <a href="https://www.flaticon.com/free-icons/graphics-card" title="graphics-card icons">Graphics-card icons created by Smashicons - Flaticon</a>
+
+<!-- [Yellow - brown GPU](https://cdn-icons-png.flaticon.com/512/2000/2000631.png): <a href="https://www.flaticon.com/free-icons/graphic-card" title="graphic card icons">Graphic card icons created by prettycons - Flaticon</a> -->
