@@ -265,7 +265,7 @@ sudo systemctl enable --now libvirtd
 **This is for when you have two or more graphics cards, or are willing to use the integrated graphics for your host.**
 
 <details>
-<summary><b style="font-size: 1.5rem"><img src='https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Fedora_icon_%282021%29.svg/512px-Fedora_icon_%282021%29.svg.png?20220308003156' width='21'/> Fedora</b></summary>
+<summary><span style="font-size: 1.5rem"><b>Fedora </b><img src='https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Fedora_icon_%282021%29.svg/512px-Fedora_icon_%282021%29.svg.png?20220308003156' width='19'/> <i>(click to expand)</i></span></summary>
 <br/>
 
 To keep it short, we will create a dracut module that will include the VFIO drivers, along with a script, in the initramfs.
@@ -390,11 +390,14 @@ drwxr-xr-x   2 root     root            0 Nov 16 23:30 usr/lib/modules/6.0.10-30
 
 </details>
 
-<!-- <details>
-<summary><b style="font-size: 1.5rem"><img src='https://assets.ubuntu.com/v1/29985a98-ubuntu-logo32.png' style="margin-top: 1ch" width='23'/> Ubuntu</b></summary>
-<br/>
+<details>
+<!-- <summary><b style="font-size: 1.5rem"><img src='' style="margin-top: 1ch" width='23'/> Ubuntu</b></summary> -->
 
-</details> -->
+<summary><span style="font-size: 1.5rem"><b>Ubuntu </b><img src='https://assets.ubuntu.com/v1/29985a98-ubuntu-logo32.png' width='19'/> <i>(click to expand)</i></span></summary>
+
+<h3 style="color: yellow;"> <i>[Work in progress]</i> </h3>
+
+</details>
 
 ## 🚀 Running the VM with GPU
 
