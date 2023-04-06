@@ -427,9 +427,7 @@ This assumes you already have a **_functional Virtual Machine_** running Windows
 
 > Having an extra USB Keyboard and Mouse to passthrough will make things simpler.
 
-| _Adding every component of my GPU_                                                                                |
-| ----------------------------------------------------------------------------------------------------------------- |
-| ![add-gpu](https://user-images.githubusercontent.com/38887390/208242017-9a622e58-8a69-43c1-9f60-b44b0b023736.gif) |
+https://user-images.githubusercontent.com/38887390/230333978-bda27ad3-1852-434a-8b3e-03e9af5177a6.mp4
 
 - And finally, start the VM! If everything went right, you should see output on your second GPU. Now install the driver and make sure everything is stable.
 
