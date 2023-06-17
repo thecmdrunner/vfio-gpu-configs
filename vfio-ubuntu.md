@@ -1,3 +1,5 @@
+<h3 style="color: yellow;"> <i>[needs improvements here and there, but Mostly done]</i> </h3>
+
 # Ubuntu setup
 
 - Make script in initramfs:
