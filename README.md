@@ -395,7 +395,7 @@ drwxr-xr-x   2 root     root            0 Nov 16 23:30 usr/lib/modules/6.0.10-30
 
 <summary><span style="font-size: 1.5rem"><b>Ubuntu </b><img src='https://assets.ubuntu.com/v1/29985a98-ubuntu-logo32.png' width='19'/> <i>(click to expand)</i></span></summary>
 
-<h3 style="color: yellow;"> <i>[Work in progress]</i> </h3>
+<h3 style="color: yellow;"> <a href='/vfio-ubuntu.md'>Check out here</a> </h3>
 
 </details>
 
